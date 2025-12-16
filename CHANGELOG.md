@@ -2,6 +2,13 @@
 
 All notable changes to the **Scribd Enhancer All-in-One** project will be documented in this file.
 
+## [3.4.0] - 2025-12-16
+
+### ✨ Features
+
+- **Inline Image Scraping**: The Scraper Output now natively displays images found on pages. It filters out small icons and only shows substantial content images (>150px).
+- **Improved Export**: HTML Export now includes these images, making it a true "Rich Text" export.
+
 ## [3.3.0] - 2025-12-16
 
 ### ✨ New UI (Pleasant Upgrade)

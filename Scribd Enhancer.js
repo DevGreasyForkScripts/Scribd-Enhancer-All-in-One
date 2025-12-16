@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Scribd Enhancer All-in-One (v3.3.0)
+// @name         Scribd Enhancer All-in-One (v3.4.0)
 // @namespace    https://greasyfork.org/users/Eliminater74
-// @version      3.3.0
+// @version      3.4.0
 // @description  Scribd Enhancer with OCR, TXT/HTML export, Snapshot PDF (pixel-perfect), Rich HTML (images inlined), page-range + quality controls. Pleasant "Dark Box" UI + floating gear. Toast notifications. Rich HTML de-duplicates layered text/image. + External Downloader button.
 // @author       Eliminater74
 // @license      MIT
@@ -15,7 +15,7 @@
   'use strict';
 
   // ---------- KEYS ----------
-  const SETTINGS_KEY = 'scribdEnhancerSettings_v3_3'; 
+  const SETTINGS_KEY = 'scribdEnhancerSettings_v3_4'; 
   const UI_POS_KEY   = 'scribdEnhancer_ui_pos_v3';
 
   // ---------- SETTINGS ----------
@@ -23,14 +23,13 @@
     unblur: true,
     autoScrape: false,
     darkMode: false,
-    showPreview: false, // Hidden by default now
+    showPreview: false,
     enableOCR: true,
     ocrLang: 'auto',
     splitEvery: 0,
     pageRange: 'all',
     snapshotScale: 2,
     snapshotQuality: 0.92,
-    richPref: 'auto',
     downloaderUrl: 'https://scribd.vdownloaders.com/?url={url}',
   };
   const settings = { ...defaultSettings, ...JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}') };
@@ -42,7 +41,7 @@
   if (!window.html2canvas) loadScript('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js');
   if (!window.jspdf) loadScript('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js');
 
-  // ---------- STYLES (Pleasant UI) ----------
+  // ---------- STYLES ----------
   const style = document.createElement('style');
   style.textContent = `
     /* -- TOASTS -- */
@@ -63,7 +62,7 @@
     /* -- GEAR -- */
     #se-gear {
       position: fixed; width: 48px; height: 48px; line-height: 48px; text-align: center;
-      background: linear-gradient(135deg, #60a5fa, #3b82f6); /* Pleasant Blue Gradient */
+      background: linear-gradient(135deg, #60a5fa, #3b82f6);
       color: #fff; border-radius: 50%;
       cursor: pointer; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4); z-index: 2147483640; user-select: none;
       font-size: 22px; transition: transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28), box-shadow 0.3s;
@@ -105,7 +104,6 @@
     .se-group { margin-bottom: 18px; }
     .se-row { display: flex; gap: 12px; margin-bottom: 10px; }
     .se-row > * { flex: 1; }
-
     .se-label { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #94a3b8; cursor: pointer; transition: color 0.2s; user-select: none; margin-bottom: 6px; }
     .se-label:hover { color: #fff; }
     
@@ -122,22 +120,18 @@
     
     .se-btn {
       width: 100%; padding: 11px; border: none; border-radius: 10px;
-      /* Default btn */
       background: #334155; color: #f8fafc;
       font-weight: 600; font-size: 13px; cursor: pointer;
       box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
       transition: all 0.2s; margin-top: 8px;
-      display: flex; align-items: center; justify-content: center; gap: 8px;
     }
     .se-btn:hover { filter: brightness(1.1); transform: translateY(-1px); box-shadow: 0 8px 15px rgba(0,0,0,0.2); }
     .se-btn:active { transform: scale(0.98); }
-    
     .se-btn-primary { background: linear-gradient(135deg, #3b82f6, #2563eb); box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3); } 
-    .se-btn-success { background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3); }
     
     /* -- PREVIEW -- */
     #se-preview {
-      position: fixed; width: 450px; height: 550px; right: 20px; bottom: 80px;
+      position: fixed; width: 500px; height: 600px; right: 20px; bottom: 80px;
       background: rgba(30, 33, 40, 0.98); backdrop-filter: blur(16px);
       border: 1px solid rgba(255,255,255,0.1); border-radius: 16px;
       box-shadow: 0 20px 60px rgba(0,0,0,0.5); z-index: 2147483642;
@@ -152,10 +146,16 @@
     }
     #se-preview-header span { font-size: 13px; font-weight: 600; color: #e2e8f0; }
     #se-preview-content {
-      flex: 1; padding: 16px; overflow: auto; font-family: 'Fira Code', Consolas, monospace; font-size: 12px;
-      color: #cbd5e1; white-space: pre-wrap; line-height: 1.5; background: rgba(15, 23, 42, 0.3);
+      flex: 1; padding: 20px; overflow: auto; font-family: 'Fira Code', Consolas, monospace; font-size: 13px;
+      color: #cbd5e1; line-height: 1.6; background: rgba(15, 23, 42, 0.3);
     }
     .se-placeholder { color: #64748b; font-style: italic; text-align: center; margin-top: 60px; }
+    
+    /* Output Scraper Styles */
+    .se-p-block { border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 20px; margin-bottom: 20px; }
+    .se-p-title { color: #60a5fa; font-size: 11px; margin-bottom: 8px; opacity: 0.7; }
+    .se-p-img { display: block; max-width: 100%; margin: 10px 0; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); }
+    .se-ocr-block { margin-top: 8px; padding: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; font-size: 11px; color: #a0aec0; }
 
     hr { border: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent); margin: 20px 0; }
   `;
@@ -197,221 +197,90 @@
     new MutationObserver(cleanup).observe(document.body, { childList: true, subtree: true });
   }
 
-  // ---------- DRAGGABLE (Fixed Logic) ----------
+  // ---------- DRAGGABLE ----------
   function makeDraggable(el, storageKey, initialFactory) {
     let pos = JSON.parse(localStorage.getItem(storageKey) || 'null');
     if (!pos && initialFactory) pos = initialFactory();
     if (pos) { el.style.left = pos.x + 'px'; el.style.top = pos.y + 'px'; }
 
-    let startX, startY, startL, startT;
-    let hasMoved = false;
+    let startX, startY, startL, startT, hasMoved = false;
 
     const onMove = (e) => {
       const c = e.touches ? e.touches[0] : e;
-      const dx = c.clientX - startX;
-      const dy = c.clientY - startY;
-      
-      if (!hasMoved && (Math.abs(dx) > 3 || Math.abs(dy) > 3)) {
-        hasMoved = true;
-        el.dataset.dragging = 'true';
-      }
-
+      const dx = c.clientX - startX, dy = c.clientY - startY;
+      if (!hasMoved && (Math.abs(dx) > 3 || Math.abs(dy) > 3)) { hasMoved = true; el.dataset.dragging = 'true'; }
       if (hasMoved) {
         e.preventDefault();
-        const nx = clamp(startL + dx, 0, window.innerWidth - el.offsetWidth);
-        const ny = clamp(startT + dy, 0, window.innerHeight - el.offsetHeight);
-        el.style.left = nx + 'px';
-        el.style.top = ny + 'px';
+        el.style.left = clamp(startL + dx, 0, window.innerWidth - el.offsetWidth) + 'px';
+        el.style.top = clamp(startT + dy, 0, window.innerHeight - el.offsetHeight) + 'px';
       }
     };
 
     const onUp = () => {
-      document.removeEventListener('mousemove', onMove);
-      document.removeEventListener('mouseup', onUp);
-      document.removeEventListener('touchmove', onMove);
-      document.removeEventListener('touchend', onUp);
-      
+      document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp);
+      document.removeEventListener('touchmove', onMove); document.removeEventListener('touchend', onUp);
       if (hasMoved) {
-        const rect = el.getBoundingClientRect();
-        localStorage.setItem(storageKey, JSON.stringify({ x: rect.left, y: rect.top }));
+        const r = el.getBoundingClientRect();
+        localStorage.setItem(storageKey, JSON.stringify({ x: r.left, y: r.top }));
         setTimeout(() => { el.dataset.dragging = 'false'; hasMoved = false; }, 50);
-      } else {
-        el.dataset.dragging = 'false';
-      }
+      } else el.dataset.dragging = 'false';
     };
 
     const onDown = (e) => {
       if (e.target.closest('input, select, button, .se-icon-btn:not(.handle)')) return;
       const c = e.touches ? e.touches[0] : e;
       startX = c.clientX; startY = c.clientY;
-      const rect = el.getBoundingClientRect();
-      startL = rect.left; startT = rect.top;
-      hasMoved = false;
-      document.addEventListener('mousemove', onMove);
-      document.addEventListener('mouseup', onUp);
-      document.addEventListener('touchmove', onMove, { passive: false });
-      document.addEventListener('touchend', onUp);
+      const r = el.getBoundingClientRect(); startL = r.left; startT = r.top; hasMoved = false;
+      document.addEventListener('mousemove', onMove); document.addEventListener('mouseup', onUp);
+      document.addEventListener('touchmove', onMove, { passive: false }); document.addEventListener('touchend', onUp);
     };
-
-    el.addEventListener('mousedown', onDown);
-    el.addEventListener('touchstart', onDown, { passive: false });
+    el.addEventListener('mousedown', onDown); el.addEventListener('touchstart', onDown, { passive: false });
   }
 
   // ---------- UI BUILDER ----------
   function buildUI() {
-    // 1. Gear
-    const gear = document.createElement('div');
-    gear.id = 'se-gear';
-    gear.innerHTML = '⚙️';
-    gear.title = 'Open Menu';
+    const gear = document.createElement('div'); gear.id = 'se-gear'; gear.innerHTML = '⚙️'; gear.title = 'Open Menu';
     document.body.appendChild(gear);
     makeDraggable(gear, UI_POS_KEY + '_gear', () => ({ x: window.innerWidth - 80, y: window.innerHeight - 80 }));
 
-    // 2. Panel
-    const panel = document.createElement('div');
-    panel.id = 'se-panel';
+    const panel = document.createElement('div'); panel.id = 'se-panel';
     panel.innerHTML = `
-      <div id="se-header">
-        <div class="title">✨ Scribd Tools</div>
-        <div class="controls">
-          <div class="se-icon-btn close" id="se-close-btn" title="Close">✕</div>
-        </div>
-      </div>
+      <div id="se-header"><div class="title">✨ Scribd Tools v3.4</div><div class="controls"><div class="se-icon-btn close" id="se-close-btn">✕</div></div></div>
       <div id="se-body">
-        <div class="se-group">
-          <label class="se-label"><input type="checkbox" id="o-unblur" class="se-chk"> <span style="margin-left:8px">Unblur Content</span></label>
-          <label class="se-label"><input type="checkbox" id="o-autoscrape" class="se-chk"> <span style="margin-left:8px">Auto-Scrape on Load</span></label>
-        </div>
-
-        <div class="se-group">
-          <button class="se-btn se-btn-primary" id="b-toggle-prev">👁️ Show Output Reader</button>
-        </div>
-        
+        <div class="se-group"><label class="se-label"><input type="checkbox" id="o-unblur" class="se-chk"> <span style="margin-left:8px">Unblur Content</span></label><label class="se-label"><input type="checkbox" id="o-autoscrape" class="se-chk"> <span style="margin-left:8px">Auto-Scrape on Load</span></label></div>
+        <div class="se-group"><button class="se-btn se-btn-primary" id="b-toggle-prev">👁️ Show Output Reader</button></div>
         <hr>
-
-        <div class="se-group">
-           <div class="se-row">
-             <div>
-               <div class="se-label">OCR Lang</div>
-               <select id="o-lang" class="se-select">
-                 <option value="auto">Auto</option>
-                 <option value="eng">English</option>
-                 <option value="spa">Spanish</option>
-                 <option value="deu">German</option>
-               </select>
-             </div>
-             <div>
-               <div class="se-label">Snapshot Scale</div>
-               <select id="o-scale" class="se-select">
-                 <option value="1">1x</option>
-                 <option value="2">2x</option>
-                 <option value="3">3x</option>
-               </select>
-             </div>
-           </div>
-           
-           <div class="se-label">Pages (e.g. 1-5, 8)</div>
-           <input type="text" id="o-range" class="se-input" placeholder="all">
-        </div>
-
+        <div class="se-group"><div class="se-row"><div><div class="se-label">OCR Lang</div><select id="o-lang" class="se-select"><option value="auto">Auto</option><option value="eng">English</option><option value="spa">Spanish</option></select></div><div><div class="se-label">Snapshot Scale</div><select id="o-scale" class="se-select"><option value="1">1x</option><option value="2">2x</option><option value="3">3x</option></select></div></div><div class="se-label">Pages (e.g. 1-5, 8)</div><input type="text" id="o-range" class="se-input" placeholder="all"></div>
         <hr>
-
-        <div class="se-group">
-          <div class="se-label">External Downloader</div>
-          <div style="display:flex;gap:8px">
-            <input id="o-dl-url" class="se-input" style="flex:1" placeholder="URL Template">
-            <button id="b-dl-go" class="se-btn se-btn-success" style="width:auto;margin:0">Go</button>
-          </div>
-        </div>
-
+        <div class="se-group"><div class="se-label">External Downloader</div><div style="display:flex;gap:8px"><input id="o-dl-url" class="se-input" style="flex:1" placeholder="URL Template"><button id="b-dl-go" class="se-btn" style="width:auto;margin:0">Go</button></div></div>
         <hr>
-        
-        <div class="se-group">
-          <div class="se-label">ACTIONS</div>
-          <button id="b-scrape" class="se-btn se-btn-primary">📖 Scrape Content</button>
-          <div class="se-row">
-            <button id="b-txt" class="se-btn">TXT</button>
-            <button id="b-html" class="se-btn">HTML</button>
-            <button id="b-print" class="se-btn">Print</button>
-          </div>
-          <button id="b-snap" class="se-btn">📸 Save PDF (Image)</button>
-          <button id="b-rich" class="se-btn">🖼️ Save Rich HTML</button>
-        </div>
-      </div>
-    `;
+        <div class="se-group"><div class="se-label">ACTIONS</div><button id="b-scrape" class="se-btn se-btn-primary">📖 Scrape Content & Images</button><div class="se-row"><button id="b-txt" class="se-btn">TXT</button><button id="b-html" class="se-btn">HTML</button><button id="b-print" class="se-btn">Print</button></div><button id="b-snap" class="se-btn">📸 Save PDF (Snapshot)</button><button id="b-rich" class="se-btn">🖼️ Save Rich HTML</button></div>
+      </div>`;
     document.body.appendChild(panel);
     makeDraggable(panel, UI_POS_KEY + '_panel', () => ({ x: window.innerWidth - 380, y: 100 }));
 
-    // 3. Preview (The "Box Reader")
-    const preview = document.createElement('div');
-    preview.id = 'se-preview';
-    preview.innerHTML = `
-      <div id="se-preview-header">
-        <span>📜 Scraper Output</span>
-        <div style="display:flex;gap:6px">
-           <div class="se-icon-btn" id="se-prev-clear" title="Clear">🧹</div>
-           <div class="se-icon-btn close" id="se-prev-close" title="Hide">✕</div>
-        </div>
-      </div>
-      <div id="se-preview-content"><div class="se-placeholder">Scraped content will appear here...</div></div>
-    `;
-    if (settings.showPreview) {
-        document.body.appendChild(preview);
-        preview.style.display = 'flex';
-    }
+    const preview = document.createElement('div'); preview.id = 'se-preview';
+    preview.innerHTML = `<div id="se-preview-header"><span>📜 Scraper Output</span><div style="display:flex;gap:6px"><div class="se-icon-btn" id="se-prev-clear">🧹</div><div class="se-icon-btn close" id="se-prev-close">✕</div></div></div><div id="se-preview-content"><div class="se-placeholder">Content will appear here...</div></div>`;
+    if (settings.showPreview) { document.body.appendChild(preview); preview.style.display = 'flex'; }
     makeDraggable(preview, UI_POS_KEY + '_preview', () => ({ x: 40, y: 40 }));
 
     // --- BINDINGS ---
     const getEl = (id) => panel.querySelector('#'+id);
-
-    // Gear Check logic
-    gear.addEventListener('click', () => {
-      if (gear.dataset.dragging === 'true') return;
-      panel.style.display = (panel.style.display === 'block') ? 'none' : 'block';
-    });
+    gear.addEventListener('click', () => { if (gear.dataset.dragging !== 'true') panel.style.display = (panel.style.display === 'block') ? 'none' : 'block'; });
     getEl('se-close-btn').onclick = () => panel.style.display = 'none';
 
-    // Settings
-    const bindCk = (id, k) => {
-      const el = getEl(id); el.checked = settings[k];
-      el.onchange = () => { settings[k] = el.checked; saveSettings(); applySideEffects(k); };
-    };
-    const bindVal = (id, k, p=v=>v) => {
-      const el = getEl(id); el.value = settings[k];
-      el.onchange = () => { settings[k] = p(el.value); saveSettings(); };
-    };
+    const bindCk = (id, k) => { const el = getEl(id); el.checked = settings[k]; el.onchange = () => { settings[k] = el.checked; saveSettings(); applySideEffects(k); }; };
+    const bindVal = (id, k, p=v=>v) => { const el = getEl(id); el.value = settings[k]; el.onchange = () => { settings[k] = p(el.value); saveSettings(); }; };
+    bindCk('o-unblur', 'unblur'); bindCk('o-autoscrape', 'autoScrape');
+    bindVal('o-lang', 'ocrLang'); bindVal('o-range', 'pageRange');
+    bindVal('o-scale', 'snapshotScale', parseInt); bindVal('o-dl-url', 'downloaderUrl');
+    
+    function applySideEffects(k) { if(k==='darkMode') applyDarkMode(); }
 
-    bindCk('o-unblur', 'unblur');
-    bindCk('o-autoscrape', 'autoScrape');
-    bindVal('o-lang', 'ocrLang');
-    bindVal('o-range', 'pageRange');
-    bindVal('o-scale', 'snapshotScale', parseInt);
-    bindVal('o-dl-url', 'downloaderUrl');
+    getEl('b-toggle-prev').onclick = () => { if(!document.body.contains(preview)) document.body.appendChild(preview); const h = preview.style.display==='none'; preview.style.display = h?'flex':'none'; settings.showPreview=h; saveSettings(); };
+    preview.querySelector('#se-prev-close').onclick = () => { preview.style.display='none'; settings.showPreview=false; saveSettings(); };
+    getEl('b-dl-go').onclick = () => window.open(settings.downloaderUrl.replace('{url}', encodeURIComponent(location.href)), '_blank');
 
-    function applySideEffects(k) {
-       if (k === 'darkMode') applyDarkMode();
-    }
-
-    // Toggle Preview
-    getEl('b-toggle-prev').onclick = () => {
-      if (!document.body.contains(preview)) document.body.appendChild(preview);
-      const isHidden = preview.style.display === 'none';
-      preview.style.display = isHidden ? 'flex' : 'none';
-      settings.showPreview = isHidden;
-      saveSettings();
-    };
-    preview.querySelector('#se-prev-close').onclick = () => {
-      preview.style.display = 'none'; settings.showPreview = false; saveSettings();
-    };
-
-    getEl('b-dl-go').onclick = () => {
-      const tpl = settings.downloaderUrl;
-      const url = location.href;
-      const target = tpl.replace('{url}', encodeURIComponent(url));
-      window.open(target, '_blank');
-    };
-
-    // Scrape Logic
     getEl('b-scrape').onclick = async () => {
       if (!document.body.contains(preview)) document.body.appendChild(preview);
       preview.style.display = 'flex'; settings.showPreview = true; saveSettings();
@@ -419,84 +288,95 @@
       const pages = [...document.querySelectorAll('.page, .reader_column, [id^="page_container"], .outer_page')];
       if (!pages.length) return showToast('❌ No pages found.');
       
-      showToast('📖 Scrape started...');
+      showToast('📖 Scraping with images...');
       const out = preview.querySelector('#se-preview-content');
-      out.textContent = '';
+      out.innerHTML = '';
       
-      // Async scrape
-      let fullText = '';
       for (let i=0; i<pages.length; i++) {
          const p = pages[i];
          p.scrollIntoView({block:'center'}); await sleep(80);
+         
+         const block = document.createElement('div'); block.className = 'se-p-block';
+         block.innerHTML = `<div class="se-p-title">Page ${i+1}</div>`;
+         
+         // 1. Text
          let txt = p.innerText.trim();
-         // OCR Placeholder
+         
+         // 2. Images (Visual Scrape)
+         const imgs = [...p.querySelectorAll('img')];
+         // Filter for substantial images
+         for (const img of imgs) {
+             if (img.naturalWidth > 150 && img.naturalHeight > 150) { 
+                 const c = document.createElement('img');
+                 c.className = 'se-p-img';
+                 c.src = img.src; // Uses direct src (CORS may apply but usually works in DOM)
+                 block.appendChild(c);
+             }
+         }
+         
+         // 3. OCR Only if text missing and no images found (or if OCR forced)
          if (settings.enableOCR && (!txt || txt.length < 50)) {
-            const img = p.querySelector('img');
-            if (img && window.Tesseract) {
+            const bigImg = p.querySelector('img'); 
+            if (bigImg && window.Tesseract) {
                try {
-                 const res = await window.Tesseract.recognize(img.src, settings.ocrLang==='auto'?'eng':settings.ocrLang);
-                 if (res.data.text) txt += `\n[OCR]: ${res.data.text}`;
+                 const res = await window.Tesseract.recognize(bigImg.src, settings.ocrLang==='auto'?'eng':settings.ocrLang);
+                 if (res.data.text) {
+                     txt += `\n${res.data.text}`;
+                     block.innerHTML += `<div class="se-ocr-block">[OCR Corrected]</div>`;
+                 }
                } catch(e){}
             }
          }
-         fullText += `--- Page ${i+1} ---\n${txt}\n\n`;
-         out.textContent = fullText; out.scrollTop = out.scrollHeight;
+         
+         const txtDiv = document.createElement('div');
+         txtDiv.innerText = txt || '[No Text]';
+         block.appendChild(txtDiv);
+         out.appendChild(block);
+         out.scrollTop = out.scrollHeight;
       }
       showToast('✅ Scrape Done');
     };
     
-    preview.querySelector('#se-prev-clear').onclick = () => {
-       preview.querySelector('#se-preview-content').innerHTML = '<div class="se-placeholder">Cleared.</div>';
-    };
+    preview.querySelector('#se-prev-clear').onclick = () => preview.querySelector('#se-preview-content').innerHTML = '<div class="se-placeholder">Cleared.</div>';
 
+    const getHtml = () => preview.querySelector('#se-preview-content').innerHTML;
     const getTxt = () => preview.querySelector('#se-preview-content').innerText;
+    
     getEl('b-txt').onclick  = () => downloadBlob(getTxt(), 'scribd_text.txt', 'text/plain');
-    getEl('b-html').onclick = () => downloadBlob(`<html><body><pre>${getTxt()}</pre></body></html>`, 'scribd_export.html', 'text/html');
-    getEl('b-print').onclick = () => { const w = window.open('','_blank'); w.document.write(`<pre>${getTxt()}</pre>`); w.close(); w.print(); };
+    getEl('b-html').onclick = () => downloadBlob(`<html><head><style>body{font-family:sans-serif;max-width:800px;margin:auto;padding:20px}img{max-width:100%}.se-p-title{color:#888;border-bottom:1px solid #ddd;margin:20px 0 10px}</style></head><body>${getHtml()}</body></html>`, 'scribd_export.html', 'text/html');
+    getEl('b-print').onclick = () => { const w = window.open('','_blank'); w.document.write(`<html><body>${getHtml()}</body></html>`); w.close(); w.print(); };
 
+    // Standard Snapshots
     getEl('b-snap').onclick = async () => {
-       const pages = [...document.querySelectorAll('.page, .reader_column')]; // simpler selector
+       const pages = [...document.querySelectorAll('.page, .reader_column')];
        if(!pages.length) return showToast('❌ No pages');
        showToast('📸 Snapshotting...');
        const { jsPDF } = window.jspdf;
        const pdf = new jsPDF({ format:'a4', compress:true });
        const pw = pdf.internal.pageSize.getWidth();
-       
        for(let i=0; i<pages.length; i++) {
-          const p = pages[i];
-          p.scrollIntoView({block:'center'}); await sleep(200);
+          const p = pages[i]; p.scrollIntoView({block:'center'}); await sleep(200);
           const cvs = await window.html2canvas(p, { scale: settings.snapshotScale, useCORS:true, backgroundColor:'#fff' });
-          const imgData = cvs.toDataURL('image/jpeg', settings.snapshotQuality);
           if(i>0) pdf.addPage();
-          const ratio = cvs.height/cvs.width;
-          pdf.addImage(imgData, 'JPEG', 0, 0, pw, pw*ratio);
+          pdf.addImage(cvs.toDataURL('image/jpeg', settings.snapshotQuality), 'JPEG', 0, 0, pw, pw*(cvs.height/cvs.width));
        }
-       pdf.save('snapshot.pdf');
-       showToast('✅ Saved PDF');
+       pdf.save('snapshot.pdf'); showToast('✅ Saved PDF');
     };
     
-    // Rich HTML
     getEl('b-rich').onclick = async () => {
        const pages = [...document.querySelectorAll('.page, .reader_column')];
        showToast('🖼️ Building HTML...');
        const buf = [];
        for (const p of pages) {
          p.scrollIntoView({block:'center'}); await sleep(100);
-         const c = p.cloneNode(true);
-         c.querySelectorAll('script,iframe').forEach(n=>n.remove());
-         // Inline images
+         const c = p.cloneNode(true); c.querySelectorAll('script,iframe').forEach(n=>n.remove());
          const imgs = [...c.querySelectorAll('img')];
          for (const img of imgs) {
-             try {
-                const cvs = document.createElement('canvas'); cvs.width=img.naturalWidth; cvs.height=img.naturalHeight;
-                cvs.getContext('2d').drawImage(img,0,0);
-                img.src = cvs.toDataURL();
-             } catch(e){}
+             try { const cvs = document.createElement('canvas'); cvs.width=img.naturalWidth; cvs.height=img.naturalHeight; cvs.getContext('2d').drawImage(img,0,0); img.src = cvs.toDataURL(); } catch(e){}
          }
          buf.push(`<div style="margin:20px auto; max-width:900px; border:1px solid #ddd; padding:20px">${c.innerHTML}</div>`);
        }
-       downloadBlob(`<html><body>${buf.join('')}</body></html>`, 'rich.html', 'text/html');
-       showToast('✅ Saved HTML');
+       downloadBlob(`<html><body>${buf.join('')}</body></html>`, 'rich.html', 'text/html'); showToast('✅ Saved HTML');
     };
   }
 
@@ -505,21 +385,12 @@
     const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = name; a.click();
   }
 
-  // ---------- BOOT ----------
   function init() {
-     applyDarkMode();
-     unblurContent();
-     buildUI();
-     // Auto Assist
+     applyDarkMode(); unblurContent(); buildUI();
      if (location.host.includes('vdownloaders')) {
         const u = new URLSearchParams(location.search).get('url');
-        if (u) {
-           const i = document.querySelector('input[name="url"], input[type="url"]');
-           if(i) i.value=u;
-        }
+        if(u) { const i = document.querySelector('input[name="url"], input[type="url"]'); if(i) i.value=u; }
      }
   }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
-  else init();
-
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
