@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Scribd Enhancer All-in-One (v3.4.0)
+// @name         Scribd Enhancer All-in-One (v3.5.0)
 // @namespace    https://greasyfork.org/users/Eliminater74
-// @version      3.4.0
+// @version      3.5.0
 // @description  Scribd Enhancer with OCR, TXT/HTML export, Snapshot PDF (pixel-perfect), Rich HTML (images inlined), page-range + quality controls. Pleasant "Dark Box" UI + floating gear. Toast notifications. Rich HTML de-duplicates layered text/image. + External Downloader button.
 // @author       Eliminater74
 // @license      MIT
@@ -15,7 +15,7 @@
   'use strict';
 
   // ---------- KEYS ----------
-  const SETTINGS_KEY = 'scribdEnhancerSettings_v3_4'; 
+  const SETTINGS_KEY = 'scribdEnhancerSettings_v3_5'; 
   const UI_POS_KEY   = 'scribdEnhancer_ui_pos_v3';
 
   // ---------- SETTINGS ----------
@@ -151,7 +151,6 @@
     }
     .se-placeholder { color: #64748b; font-style: italic; text-align: center; margin-top: 60px; }
     
-    /* Output Scraper Styles */
     .se-p-block { border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 20px; margin-bottom: 20px; }
     .se-p-title { color: #60a5fa; font-size: 11px; margin-bottom: 8px; opacity: 0.7; }
     .se-p-img { display: block; max-width: 100%; margin: 10px 0; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); }
@@ -245,7 +244,7 @@
 
     const panel = document.createElement('div'); panel.id = 'se-panel';
     panel.innerHTML = `
-      <div id="se-header"><div class="title">✨ Scribd Tools v3.4</div><div class="controls"><div class="se-icon-btn close" id="se-close-btn">✕</div></div></div>
+      <div id="se-header"><div class="title">✨ Scribd Tools v3.5</div><div class="controls"><div class="se-icon-btn close" id="se-close-btn">✕</div></div></div>
       <div id="se-body">
         <div class="se-group"><label class="se-label"><input type="checkbox" id="o-unblur" class="se-chk"> <span style="margin-left:8px">Unblur Content</span></label><label class="se-label"><input type="checkbox" id="o-autoscrape" class="se-chk"> <span style="margin-left:8px">Auto-Scrape on Load</span></label></div>
         <div class="se-group"><button class="se-btn se-btn-primary" id="b-toggle-prev">👁️ Show Output Reader</button></div>
@@ -254,7 +253,7 @@
         <hr>
         <div class="se-group"><div class="se-label">External Downloader</div><div style="display:flex;gap:8px"><input id="o-dl-url" class="se-input" style="flex:1" placeholder="URL Template"><button id="b-dl-go" class="se-btn" style="width:auto;margin:0">Go</button></div></div>
         <hr>
-        <div class="se-group"><div class="se-label">ACTIONS</div><button id="b-scrape" class="se-btn se-btn-primary">📖 Scrape Content & Images</button><div class="se-row"><button id="b-txt" class="se-btn">TXT</button><button id="b-html" class="se-btn">HTML</button><button id="b-print" class="se-btn">Print</button></div><button id="b-snap" class="se-btn">📸 Save PDF (Snapshot)</button><button id="b-rich" class="se-btn">🖼️ Save Rich HTML</button></div>
+        <div class="se-group"><div class="se-label">ACTIONS</div><button id="b-scrape" class="se-btn se-btn-primary">📖 Scrape Content & Images</button><div class="se-row"><button id="b-txt" class="se-btn">TXT</button><button id="b-html" class="se-btn">HTML</button><button id="b-doc" class="se-btn">DOC</button></div><div style="margin-top:6px"><button id="b-print" class="se-btn" title="System Print (Searchable PDF)">🖨️ Print / Save PDF</button></div><button id="b-snap" class="se-btn">📸 Save Image PDF (Snapshot)</button><button id="b-rich" class="se-btn">🖼️ Save Rich HTML</button></div>
       </div>`;
     document.body.appendChild(panel);
     makeDraggable(panel, UI_POS_KEY + '_panel', () => ({ x: window.innerWidth - 380, y: 100 }));
@@ -295,48 +294,30 @@
       for (let i=0; i<pages.length; i++) {
          const p = pages[i];
          p.scrollIntoView({block:'center'}); await sleep(80);
-         
          const block = document.createElement('div'); block.className = 'se-p-block';
          block.innerHTML = `<div class="se-p-title">Page ${i+1}</div>`;
          
-         // 1. Text
          let txt = p.innerText.trim();
-         
-         // 2. Images (Visual Scrape)
          const imgs = [...p.querySelectorAll('img')];
-         // Filter for substantial images
          for (const img of imgs) {
              if (img.naturalWidth > 150 && img.naturalHeight > 150) { 
-                 const c = document.createElement('img');
-                 c.className = 'se-p-img';
-                 c.src = img.src; // Uses direct src (CORS may apply but usually works in DOM)
-                 block.appendChild(c);
+                 const c = document.createElement('img'); c.className = 'se-p-img'; c.src = img.src; block.appendChild(c);
              }
          }
-         
-         // 3. OCR Only if text missing and no images found (or if OCR forced)
          if (settings.enableOCR && (!txt || txt.length < 50)) {
             const bigImg = p.querySelector('img'); 
             if (bigImg && window.Tesseract) {
                try {
                  const res = await window.Tesseract.recognize(bigImg.src, settings.ocrLang==='auto'?'eng':settings.ocrLang);
-                 if (res.data.text) {
-                     txt += `\n${res.data.text}`;
-                     block.innerHTML += `<div class="se-ocr-block">[OCR Corrected]</div>`;
-                 }
+                 if (res.data.text) { txt += `\n${res.data.text}`; block.innerHTML += `<div class="se-ocr-block">[OCR Corrected]</div>`; }
                } catch(e){}
             }
          }
-         
-         const txtDiv = document.createElement('div');
-         txtDiv.innerText = txt || '[No Text]';
-         block.appendChild(txtDiv);
-         out.appendChild(block);
-         out.scrollTop = out.scrollHeight;
+         const txtDiv = document.createElement('div'); txtDiv.innerText = txt || '[No Text]'; block.appendChild(txtDiv);
+         out.appendChild(block); out.scrollTop = out.scrollHeight;
       }
       showToast('✅ Scrape Done');
     };
-    
     preview.querySelector('#se-prev-clear').onclick = () => preview.querySelector('#se-preview-content').innerHTML = '<div class="se-placeholder">Cleared.</div>';
 
     const getHtml = () => preview.querySelector('#se-preview-content').innerHTML;
@@ -344,9 +325,12 @@
     
     getEl('b-txt').onclick  = () => downloadBlob(getTxt(), 'scribd_text.txt', 'text/plain');
     getEl('b-html').onclick = () => downloadBlob(`<html><head><style>body{font-family:sans-serif;max-width:800px;margin:auto;padding:20px}img{max-width:100%}.se-p-title{color:#888;border-bottom:1px solid #ddd;margin:20px 0 10px}</style></head><body>${getHtml()}</body></html>`, 'scribd_export.html', 'text/html');
+    getEl('b-doc').onclick  = () => {
+        const h = `<html><head><meta charset="utf-8"></head><body>${getHtml()}</body></html>`;
+        downloadBlob(h, 'scribd_doc.doc', 'application/msword');
+    };
     getEl('b-print').onclick = () => { const w = window.open('','_blank'); w.document.write(`<html><body>${getHtml()}</body></html>`); w.close(); w.print(); };
 
-    // Standard Snapshots
     getEl('b-snap').onclick = async () => {
        const pages = [...document.querySelectorAll('.page, .reader_column')];
        if(!pages.length) return showToast('❌ No pages');

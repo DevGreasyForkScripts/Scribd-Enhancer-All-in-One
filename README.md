@@ -1,54 +1,80 @@
-# Scribd Enhancer All-in-One
+# 📘 Scribd Enhancer All-in-One (v3.5.0)
 
-![Scribd Enhancer Banner](https://img.shields.io/badge/Scribd-Enhancer-1e1f22?style=for-the-badge&logo=scribd&logoColor=white)
-![Version](https://img.shields.io/badge/Version-3.2.0-blue?style=flat-square)
-![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
+**Author:** [Eliminater74](https://greasyfork.org/users/Eliminater74)  
+**License:** MIT  
+**Compatible with:** Chrome + Tampermonkey, Firefox + Violentmonkey  
+**Matches:**  
+`*://*.scribd.com/*`  
+`*://scribd.vdownloaders.com/*`
 
-**Unlock the full potential of Scribd reading.** This userscript is a powerful, all-in-one toolkit designed to enhance your experience on Scribd.com. It provides advanced features like unblurring content, comprehensive export options (TXT, pixel-perfect PDF, Rich HTML), and a modern, draggable control panel.
+---
+
+## 🆕 What’s New in v3.5.0
+
+*   **DOC Export** — Export scraped content directly to a Microsoft Word-compatible `.doc` file.
+*   **Inline Image Scraping** — The scraper now detects and displays images inline within the output reader (filtering out small icons).
+*   **Refined PDF Export** — Renamed "Print" to "Print / Save PDF" to clarify that the system print dialog is the best way to get text-searchable PDFs.
+*   **"Pleasant Dark" UI** — A complete visual overhaul (v3.3.0) replacing the old look with a polished, rounded, dark-blue aesthetic.
+*   **Smart Dragging** — Fixed menu interactions so clicks are never mistaken for drags.
+*   **Toast Notifications** — Replaced annoying browser alerts with sleek, non-blocking popup notifications.
+
+---
 
 ## ✨ Features
 
-*   **👁️ Unblur & Cleanup**: Automatically removes blurred pages, "promo" banners, and unselectable text restrictions.
-*   **💾 Advanced Exporting**:
-    *   **Plain Text (.txt)**: Extract pure text from the document.
-    *   **Plain HTML (.html)**: Export text with basic formatting.
-    *   **Snapshot PDF (.pdf)**: Create a pixel-perfect PDF from page screenshots (HTML2Canvas + jsPDF). Great for documents with complex layouts.
-    *   **Rich HTML (.html)**: Export a self-contained HTML file with images inlined and layout preserved. Smartly handles duplicate layers (text vs. image).
-    *   **Print**: Clean print view for system printing.
-*   **📖 OCR Support**: Built-in integration with Tesseract.js to extract text from image-only pages on the fly.
-*   **⚙️ Modern UI**:
-    *   **Glassmorphism Control Panel**: a beautiful, translucent, draggable menu.
-    *   **Floating Gear**: Unobtrusive floating button to toggle the menu.
-    *   **Live Preview**: See what you scrape in real-time.
-    *   **Toast Notifications**: Non-intrusive status updates instead of annoying popups.
-*   **⬇️ External Downloader**: One-click integration with `scribd.vdownloaders.com` for valid file downloads.
-*   **🛠️ Power Tools**:
-    *   **Page Range**: Export specific pages (e.g., `1-10`, `5,8,20`).
-    *   **Auto-Scrape**: Option to start scraping immediately on load.
-    *   **Dark Mode**: A built-in dark theme for the document viewer and panel.
+✅ **Unblur Content** — Instantly removes Scribd’s blur filters and visual overlays  
+✅ **Inline Image Support** — Captures and displays images directly in the Scraper Output box  
+✅ **Full-Text & Image OCR** — Uses [Tesseract.js](https://tesseract.projectnaptha.com/) to read scanned pages  
+✅ **Auto Language Detection** — Detects document language automatically or allows manual selection  
+✅ **Smart Filtering** — Skips irrelevant logos, icons, and watermark graphics  
+✅ **Live Scraper Output** — See text and images appear in real-time (hidden by default, toggles with `P` key or empty scrape)  
 
-## 🚀 Installation
+✅ **Export Options**:
+*   📝 **TXT** — Clean text only
+*   📄 **DOC** — Microsoft Word compatible file
+*   🌐 **HTML** — Plain or Rich (includes inline images)
+*   🖨️ **Print / Save PDF** — Uses system print to generate searchable PDF
+*   📷 **Snapshot PDF** — Pixel-perfect image-based PDF (great for preserving exact layout)
 
-1.  Install a userscript manager like **Tampermonkey** or **Violentmonkey**.
-2.  [**Click Here to Install**](https://greasyfork.org/scripts/483606-scribd-enhancer-all-in-one) (or copy the script code).
-3.  Visit any Scribd document page.
-4.  Look for the floating **⚙️ Gear Icon** (default: bottom-right) to open the control panel.
+✅ **Integration**:
+*   **External Downloader** — One-click button to open the current document in `scribd.vdownloaders.com`
+*   **Auto-Fill** — Automatically fills the URL when opening the external downloader
 
-## 🕹️ Controls
-
-*   **Open Panel**: Click the Floating Gear ⚙️ or press `G`.
-*   **Toggle Preview**: Click the "Eye" 👁️ icon or press `P`.
-*   **Close Panel**: Press `ESC` or click the `X`.
-
-## 📸 Usage Tips
-
-*   **Snapshot PDF**: Use `Scale: 2x` and `Quality: 0.92` for the best balance of quality and file size.
-*   **Rich Export**: If a document has selectable text but also page images, try setting "Rich Export Preference" to "Keep Text" to reduce file size.
-*   **OCR**: Select your document's language in the dropdown for better accuracy if the auto-detection fails.
-
-## 📝 Changelog
-
-See [CHANGELOG.md](./CHANGELOG.md) for version history.
+✅ **Customization**:
+*   **Dark Mode** — Optional night-friendly reading mode
+*   **Persistent Settings** — All toggles, menu state, and UI positions are saved locally
+*   **Draggable UI** — Move the menu and the output box anywhere on your screen
 
 ---
-*Disclaimer: This script is for educational and accessibility purposes only. Please respect copyright laws and Scribd's terms of service.*
+
+## 📖 How to Use
+
+1.  **Install** the script in Tampermonkey or Violentmonkey.
+2.  **Open** any Scribd document.
+3.  **Click** the floating gear ⚙️ icon to open the control panel:
+    *   Enable **Unblur** to see content clearly.
+    *   Click **Scrape Content** to extract text and images.
+    *   Use the **Scraper Output** window to review the content.
+4.  **Export** your content:
+    *   Click **DOC** for Word documents.
+    *   Click **Print / Save PDF** for a searchable PDF file.
+    *   Click **Snapshot PDF** if you need an exact visual copy.
+5.  (Optional) Use the **External Downloader** section to process the link via 3rd party tools.
+
+---
+
+## 💡 Tips
+
+*   **Keyboard Shortcut**: Press **`P`** to quickly toggle the Scraper Output visibility.
+*   **OCR**: Keep **Unblur** + **OCR** enabled for the best results on scanned documents.
+*   **PDFs**: For the best text-searchable PDF, use the **Print / Save PDF** button and choose "Save as PDF" in your browser's print dialog.
+*   **Images**: The scraper automatically filters out images smaller than 150px to keep your export clean.
+
+---
+
+## 🔮 Planned Updates
+
+*   **Rich HTML Layer Cleanup** — Eliminate duplicate/overlapping text and image layers
+*   **Selective Export** — Scrape by page range or keyword search
+*   **Integrated Translation** — Auto-translate OCR output into your chosen language
+*   **ZIP Bundling** — Package all text, HTML, and images in a single download

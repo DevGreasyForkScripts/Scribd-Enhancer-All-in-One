@@ -2,9 +2,16 @@
 
 All notable changes to the **Scribd Enhancer All-in-One** project will be documented in this file.
 
-## [3.4.0] - 2025-12-16
+## [3.5.0] - 2025-12-16
 
 ### ✨ Features
+
+- **DOC Export**: Added a "DOC" button to the Scraper Output. This exports the scraped content (text + images) into a `.doc` file compatible with Microsoft Word.
+- **Improved Print/PDF**: Renamed the "Print" button to "Print / Save PDF" to clarify that you can use this to generate a high-quality, text-searchable PDF.
+
+## [3.4.0] - 2025-12-16
+
+### ✨ Features (v3.4.0)
 
 - **Inline Image Scraping**: The Scraper Output now natively displays images found on pages. It filters out small icons and only shows substantial content images (>150px).
 - **Improved Export**: HTML Export now includes these images, making it a true "Rich Text" export.
